@@ -1,0 +1,15 @@
+{
+  "name": "english-training",
+  "version": "1.0.0",
+  "description": "Веб-приложение для изучения английских слов",
+  "scripts": {
+    "dev:frontend": "cd frontend && yarn dev",
+    "dev:backend": "cd backend && yarn dev",
+    "dev": "concurrently \"yarn dev:backend\" \"yarn dev:frontend\"",
+    "build:frontend": "cd frontend && yarn build",
+    "install:all": "yarn install && cd frontend && yarn install && cd ../backend && yarn install"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
