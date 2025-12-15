@@ -107,4 +107,3 @@ export const useWordsStore = defineStore('words', () => {
     getWordsCount,
   };
 });
-

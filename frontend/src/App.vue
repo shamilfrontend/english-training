@@ -1,12 +1,12 @@
+<script setup>
+// Основной компонент приложения
+</script>
+
 <template>
   <div id="app" class="app">
     <router-view />
   </div>
 </template>
-
-<script setup>
-// Основной компонент приложения
-</script>
 
 <style lang="scss">
 #app {
@@ -14,4 +14,3 @@
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 </style>
-

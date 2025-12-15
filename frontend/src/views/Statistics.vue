@@ -1,12 +1,60 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+
+import AppHeader from '@/components/layout/AppHeader.vue';
+import { useProgressStore } from '@/store/progress';
+import { useWordsStore } from '@/store/words';
+
+const progressStore = useProgressStore();
+const wordsStore = useWordsStore();
+
+const loading = ref(true);
+const stats = ref({
+  mastered: 0,
+  learning: 0,
+  review: 0,
+  new: 0,
+});
+
+const totalWords = ref(0);
+
+const loadData = async () => {
+  loading.value = true;
+
+  const progressResult = await progressStore.fetchProgress();
+  if (progressResult.success) {
+    stats.value = progressStore.getStats();
+  }
+
+  const wordsResult = await wordsStore.fetchWords();
+  if (wordsResult.success) {
+    totalWords.value = wordsStore.words.length;
+  }
+
+  loading.value = false;
+};
+
+const learnedWords = computed(() => stats.value.mastered + stats.value.learning + stats.value.review);
+
+const progressPercent = computed(() => {
+  if (totalWords.value === 0) return 0;
+  return Math.round((learnedWords.value / totalWords.value) * 100);
+});
+
+onMounted(() => {
+  loadData();
+});
+</script>
+
 <template>
   <div class="layout">
     <AppHeader />
     <main class="layout__content">
       <div class="container">
         <h1 class="page-title">Статистика</h1>
-        
+
         <div v-if="loading" class="loading">Загрузка...</div>
-        
+
         <div v-else class="statistics">
           <div class="progress__stats">
             <div class="progress__stat">
@@ -44,57 +92,6 @@
     </main>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useToast } from 'vue-toastification';
-import AppHeader from '@/components/layout/AppHeader.vue';
-import { useProgressStore } from '@/store/progress';
-import { useWordsStore } from '@/store/words';
-
-const toast = useToast();
-const progressStore = useProgressStore();
-const wordsStore = useWordsStore();
-
-const loading = ref(true);
-const stats = ref({
-  mastered: 0,
-  learning: 0,
-  review: 0,
-  new: 0,
-});
-
-const totalWords = ref(0);
-
-const loadData = async () => {
-  loading.value = true;
-  
-  const progressResult = await progressStore.fetchProgress();
-  if (progressResult.success) {
-    stats.value = progressStore.getStats();
-  }
-
-  const wordsResult = await wordsStore.fetchWords();
-  if (wordsResult.success) {
-    totalWords.value = wordsStore.words.length;
-  }
-  
-  loading.value = false;
-};
-
-const learnedWords = computed(() => {
-  return stats.value.mastered + stats.value.learning + stats.value.review;
-});
-
-const progressPercent = computed(() => {
-  if (totalWords.value === 0) return 0;
-  return Math.round((learnedWords.value / totalWords.value) * 100);
-});
-
-onMounted(() => {
-  loadData();
-});
-</script>
 
 <style lang="scss" scoped>
 @import '../styles/components.scss';
@@ -140,4 +137,3 @@ onMounted(() => {
   font-weight: 500;
 }
 </style>
-

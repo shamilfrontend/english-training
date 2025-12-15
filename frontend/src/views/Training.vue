@@ -1,3 +1,103 @@
+<script setup>
+import { ref, computed, onMounted } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
+import AppHeader from '@/components/layout/AppHeader.vue';
+import WordCard from '@/components/training/WordCard.vue';
+import { useWordsStore } from '@/store/words';
+
+const route = useRoute();
+const router = useRouter();
+const toast = useToast();
+const wordsStore = useWordsStore();
+
+const { category } = route.params;
+const words = ref([]);
+const currentIndex = ref(0);
+const started = ref(false);
+const results = ref({ correct: 0, wrong: 0 });
+const trainingResults = ref([]);
+
+const categoryName = computed(() => {
+  const cat = wordsStore.categories.find((c) => c.id === category);
+  return cat ? cat.name : '';
+});
+
+const currentWord = computed(() => words.value[currentIndex.value] || {});
+
+const loadWords = async () => {
+  // Если выбрана категория, загружаем все слова без лимита
+  const limit = category ? 1000 : 10;
+  const result = await wordsStore.getDailyTraining(category || undefined, limit);
+
+  if (result.success) {
+    words.value = result.data;
+    if (words.value.length === 0) {
+      toast.info('Нет слов для тренировки');
+      void router.push('/categories');
+    }
+  } else {
+    toast.error(result.error);
+    void router.push('/categories');
+  }
+};
+
+const startTraining = () => {
+  started.value = true;
+};
+
+const saveResults = async () => {
+  const result = await wordsStore.completeTraining(trainingResults.value);
+
+  if (result.success) {
+    toast.success('Результаты сохранены!');
+  } else {
+    toast.error(result.error);
+  }
+};
+
+const handleAnswer = async (answerData) => {
+  const { word } = currentWord.value;
+  const wordId = word._id;
+
+  trainingResults.value.push({
+    wordId,
+    isCorrect: answerData.isCorrect,
+    selectedIndex: answerData.selectedIndex,
+    correctIndex: answerData.correctIndex,
+  });
+
+  if (answerData.isCorrect) {
+    results.value.correct += 1;
+  } else {
+    results.value.wrong += 1;
+  }
+
+  // Небольшая задержка перед переходом к следующему слову
+  setTimeout(() => {
+    // Переходим к следующему слову
+    if (currentIndex.value < words.value.length - 1) {
+      currentIndex.value += 1;
+    } else {
+      // Сохраняем результаты
+      saveResults();
+    }
+  }, 1500);
+};
+
+const restartTraining = () => {
+  started.value = false;
+  currentIndex.value = 0;
+  results.value = { correct: 0, wrong: 0 };
+  trainingResults.value = [];
+  loadWords();
+};
+
+onMounted(() => {
+  loadWords();
+});
+</script>
+
 <template>
   <div class="layout">
     <AppHeader />
@@ -64,110 +164,6 @@
     </main>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
-import { useToast } from 'vue-toastification';
-import AppHeader from '@/components/layout/AppHeader.vue';
-import WordCard from '@/components/training/WordCard.vue';
-import { useWordsStore } from '@/store/words';
-import { useProgressStore } from '@/store/progress';
-
-const route = useRoute();
-const router = useRouter();
-const toast = useToast();
-const wordsStore = useWordsStore();
-const progressStore = useProgressStore();
-
-const category = route.params.category;
-const words = ref([]);
-const currentIndex = ref(0);
-const started = ref(false);
-const results = ref({ correct: 0, wrong: 0 });
-const trainingResults = ref([]);
-
-const categoryName = computed(() => {
-  const cat = wordsStore.categories.find((c) => c.id === category);
-  return cat ? cat.name : '';
-});
-
-const currentWord = computed(() => {
-  return words.value[currentIndex.value] || {};
-});
-
-const loadWords = async () => {
-  // Если выбрана категория, загружаем все слова без лимита
-  const limit = category ? 1000 : 10;
-  const result = await wordsStore.getDailyTraining(category || undefined, limit);
-  
-  if (result.success) {
-    words.value = result.data;
-    if (words.value.length === 0) {
-      toast.info('Нет слов для тренировки');
-      router.push('/categories');
-    }
-  } else {
-    toast.error(result.error);
-    router.push('/categories');
-  }
-};
-
-const startTraining = () => {
-  started.value = true;
-};
-
-const handleAnswer = async (answerData) => {
-  const word = currentWord.value.word;
-  const wordId = word._id;
-  
-  trainingResults.value.push({
-    wordId,
-    isCorrect: answerData.isCorrect,
-    selectedIndex: answerData.selectedIndex,
-    correctIndex: answerData.correctIndex,
-  });
-
-  if (answerData.isCorrect) {
-    results.value.correct++;
-  } else {
-    results.value.wrong++;
-  }
-
-  // Небольшая задержка перед переходом к следующему слову
-  setTimeout(() => {
-    // Переходим к следующему слову
-    if (currentIndex.value < words.value.length - 1) {
-      currentIndex.value++;
-    } else {
-      // Сохраняем результаты
-      saveResults();
-    }
-  }, 1500);
-};
-
-const saveResults = async () => {
-  const result = await wordsStore.completeTraining(trainingResults.value);
-  
-  if (result.success) {
-    toast.success('Результаты сохранены!');
-  } else {
-    toast.error(result.error);
-  }
-};
-
-const restartTraining = () => {
-  started.value = false;
-  currentIndex.value = 0;
-  results.value = { correct: 0, wrong: 0 };
-  trainingResults.value = [];
-  loadWords();
-};
-
-onMounted(() => {
-  loadWords();
-});
-</script>
 
 <style lang="scss" scoped>
 @import '../styles/components.scss';
@@ -255,4 +251,3 @@ onMounted(() => {
   }
 }
 </style>
-

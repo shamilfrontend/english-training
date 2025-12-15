@@ -1,8 +1,8 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import Toast from 'vue-toastification';
 import App from './App.vue';
 import router from './router';
-import Toast from 'vue-toastification';
 import 'vue-toastification/dist/index.css';
 import './styles/main.scss';
 
@@ -27,4 +27,3 @@ app.use(Toast, {
 });
 
 app.mount('#app');
-

@@ -1,12 +1,42 @@
+<script setup>
+import { ref, onMounted } from 'vue';
+import { useToast } from 'vue-toastification';
+import AppHeader from '@/components/layout/AppHeader.vue';
+import { useAuthStore } from '@/store/auth';
+
+const toast = useToast();
+const authStore = useAuthStore();
+
+const user = ref(null);
+const loading = ref(true);
+
+const loadProfile = async () => {
+  loading.value = true;
+  const result = await authStore.fetchProfile();
+
+  if (result.success) {
+    user.value = authStore.user;
+  } else {
+    toast.error(result.error);
+  }
+
+  loading.value = false;
+};
+
+onMounted(() => {
+  loadProfile();
+});
+</script>
+
 <template>
   <div class="layout">
     <AppHeader />
     <main class="layout__content">
       <div class="container">
         <h1 class="page-title">Профиль</h1>
-        
+
         <div v-if="loading" class="loading">Загрузка...</div>
-        
+
         <div v-else class="profile">
           <div class="card">
             <h2>Информация о пользователе</h2>
@@ -32,36 +62,6 @@
     </main>
   </div>
 </template>
-
-<script setup>
-import { ref, onMounted } from 'vue';
-import { useToast } from 'vue-toastification';
-import AppHeader from '@/components/layout/AppHeader.vue';
-import { useAuthStore } from '@/store/auth';
-
-const toast = useToast();
-const authStore = useAuthStore();
-
-const user = ref(null);
-const loading = ref(true);
-
-const loadProfile = async () => {
-  loading.value = true;
-  const result = await authStore.fetchProfile();
-  
-  if (result.success) {
-    user.value = authStore.user;
-  } else {
-    toast.error(result.error);
-  }
-  
-  loading.value = false;
-};
-
-onMounted(() => {
-  loadProfile();
-});
-</script>
 
 <style lang="scss" scoped>
 @import '../styles/components.scss';
@@ -96,4 +96,3 @@ onMounted(() => {
   }
 }
 </style>
-

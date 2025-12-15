@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --fix --ignore-path .gitignore",
+    "lint:check": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs --ignore-path .gitignore"
   },
   "dependencies": {
     "vue": "^3.3.11",
@@ -18,7 +20,12 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.2",
     "sass": "^1.69.5",
-    "vite": "^5.0.8"
+    "vite": "^5.0.8",
+    "eslint": "^8.57.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-vue": "^9.23.0",
+    "@vue/eslint-config-airbnb": "^7.0.0",
+    "vite-plugin-eslint": "^1.8.1"
   }
 }
-

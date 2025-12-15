@@ -1,3 +1,36 @@
+<script setup>
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useToast } from 'vue-toastification';
+import { useAuthStore } from '@/store/auth';
+
+const router = useRouter();
+const toast = useToast();
+const authStore = useAuthStore();
+
+const email = ref('');
+const password = ref('');
+const loading = ref(false);
+const errors = ref({});
+
+const handleLogin = async () => {
+  errors.value = {};
+  loading.value = true;
+
+  const result = await authStore.login(email.value, password.value);
+
+  if (result.success) {
+    toast.success('Добро пожаловать!');
+    router.push('/dashboard');
+  } else {
+    toast.error(result.error);
+    errors.value.general = result.error;
+  }
+
+  loading.value = false;
+};
+</script>
+
 <template>
   <div class="auth-page">
     <div class="container">
@@ -40,39 +73,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useToast } from 'vue-toastification';
-import { useAuthStore } from '@/store/auth';
-
-const router = useRouter();
-const toast = useToast();
-const authStore = useAuthStore();
-
-const email = ref('');
-const password = ref('');
-const loading = ref(false);
-const errors = ref({});
-
-const handleLogin = async () => {
-  errors.value = {};
-  loading.value = true;
-
-  const result = await authStore.login(email.value, password.value);
-
-  if (result.success) {
-    toast.success('Добро пожаловать!');
-    router.push('/dashboard');
-  } else {
-    toast.error(result.error);
-    errors.value.general = result.error;
-  }
-
-  loading.value = false;
-};
-</script>
 
 <style lang="scss" scoped>
 .auth-page {
@@ -130,4 +130,3 @@ const handleLogin = async () => {
   margin-top: 0.25rem;
 }
 </style>
-

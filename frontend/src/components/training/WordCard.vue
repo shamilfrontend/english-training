@@ -1,3 +1,119 @@
+<script setup>
+import { ref, computed, watch } from 'vue';
+
+const props = defineProps({
+  word: {
+    type: Object,
+    required: true,
+  },
+  options: {
+    type: Array,
+    required: true,
+    default: () => [],
+  },
+  correctIndex: {
+    type: Number,
+    required: true,
+    default: 0,
+  },
+});
+
+const emit = defineEmits(['answer']);
+
+const selectedIndex = ref(null);
+const isPlaying = ref(false);
+
+const safeOptions = computed(() => (props.options && props.options.length > 0
+  ? props.options
+  : []));
+
+const safeCorrectIndex = computed(() => (props.correctIndex >= 0 && props.correctIndex < safeOptions.value.length
+  ? props.correctIndex
+  : 0));
+
+// Сбрасываем выбор при смене слова
+watch(
+  () => props.word._id,
+  () => {
+    selectedIndex.value = null;
+  },
+);
+
+const handleSelect = (index) => {
+  if (selectedIndex.value !== null) return;
+
+  selectedIndex.value = index;
+};
+
+const handleContinue = () => {
+  if (selectedIndex.value === null) return;
+
+  const isCorrect = selectedIndex.value === safeCorrectIndex.value;
+  emit('answer', {
+    isCorrect,
+    selectedIndex: selectedIndex.value,
+    correctIndex: safeCorrectIndex.value,
+  });
+
+  // Сбрасываем выбор после отправки ответа
+  selectedIndex.value = null;
+};
+
+const playWord = () => {
+  if (isPlaying.value || !props.word?.word) return;
+
+  // Проверяем поддержку Web Speech API
+  if (!('speechSynthesis' in window)) {
+    console.warn('Speech synthesis не поддерживается в этом браузере');
+    return;
+  }
+
+  isPlaying.value = true;
+
+  // Останавливаем предыдущее воспроизведение, если есть
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(props.word.word);
+
+  // Настройки для английского произношения
+  utterance.lang = 'en-US';
+  utterance.rate = 0.9; // Скорость речи (0.1 - 10)
+  utterance.pitch = 1; // Высота голоса (0 - 2)
+  utterance.volume = 1; // Громкость (0 - 1)
+
+  // Пытаемся выбрать английский голос
+  const voices = window.speechSynthesis.getVoices();
+  const englishVoice = voices.find(
+    (voice) => voice.lang.startsWith('en') && voice.localService,
+  ) || voices.find((voice) => voice.lang.startsWith('en'));
+
+  if (englishVoice) {
+    utterance.voice = englishVoice;
+  }
+
+  utterance.onend = () => {
+    isPlaying.value = false;
+  };
+
+  utterance.onerror = () => {
+    isPlaying.value = false;
+    console.error('Ошибка при воспроизведении слова');
+  };
+
+  window.speechSynthesis.speak(utterance);
+};
+
+// Загружаем голоса при монтировании компонента
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  // Некоторые браузеры загружают голоса асинхронно
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
+      // Голоса загружены
+    });
+  }
+}
+</script>
+
 <template>
   <div class="word-card fade-in">
     <div class="word-card__content">
@@ -93,126 +209,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-import { ref, computed, watch } from 'vue';
-
-const props = defineProps({
-  word: {
-    type: Object,
-    required: true,
-  },
-  options: {
-    type: Array,
-    required: true,
-    default: () => [],
-  },
-  correctIndex: {
-    type: Number,
-    required: true,
-    default: 0,
-  },
-});
-
-const emit = defineEmits(['answer']);
-
-const selectedIndex = ref(null);
-const isPlaying = ref(false);
-
-const safeOptions = computed(() => {
-  return props.options && props.options.length > 0 
-    ? props.options 
-    : [];
-});
-
-const safeCorrectIndex = computed(() => {
-  return props.correctIndex >= 0 && props.correctIndex < safeOptions.value.length
-    ? props.correctIndex
-    : 0;
-});
-
-// Сбрасываем выбор при смене слова
-watch(
-  () => props.word._id,
-  () => {
-    selectedIndex.value = null;
-  }
-);
-
-const handleSelect = (index) => {
-  if (selectedIndex.value !== null) return;
-  
-  selectedIndex.value = index;
-};
-
-const handleContinue = () => {
-  if (selectedIndex.value === null) return;
-  
-  const isCorrect = selectedIndex.value === safeCorrectIndex.value;
-  emit('answer', {
-    isCorrect,
-    selectedIndex: selectedIndex.value,
-    correctIndex: safeCorrectIndex.value,
-  });
-  
-  // Сбрасываем выбор после отправки ответа
-  selectedIndex.value = null;
-};
-
-const playWord = () => {
-  if (isPlaying.value || !props.word?.word) return;
-
-  // Проверяем поддержку Web Speech API
-  if (!('speechSynthesis' in window)) {
-    console.warn('Speech synthesis не поддерживается в этом браузере');
-    return;
-  }
-
-  isPlaying.value = true;
-
-  // Останавливаем предыдущее воспроизведение, если есть
-  window.speechSynthesis.cancel();
-
-  const utterance = new SpeechSynthesisUtterance(props.word.word);
-  
-  // Настройки для английского произношения
-  utterance.lang = 'en-US';
-  utterance.rate = 0.9; // Скорость речи (0.1 - 10)
-  utterance.pitch = 1; // Высота голоса (0 - 2)
-  utterance.volume = 1; // Громкость (0 - 1)
-
-  // Пытаемся выбрать английский голос
-  const voices = window.speechSynthesis.getVoices();
-  const englishVoice = voices.find(
-    (voice) => voice.lang.startsWith('en') && voice.localService
-  ) || voices.find((voice) => voice.lang.startsWith('en'));
-
-  if (englishVoice) {
-    utterance.voice = englishVoice;
-  }
-
-  utterance.onend = () => {
-    isPlaying.value = false;
-  };
-
-  utterance.onerror = () => {
-    isPlaying.value = false;
-    console.error('Ошибка при воспроизведении слова');
-  };
-
-  window.speechSynthesis.speak(utterance);
-};
-
-// Загружаем голоса при монтировании компонента
-if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-  // Некоторые браузеры загружают голоса асинхронно
-  if (window.speechSynthesis.getVoices().length === 0) {
-    window.speechSynthesis.addEventListener('voiceschanged', () => {
-      // Голоса загружены
-    });
-  }
-}
-</script>
 
 <style lang="scss" scoped>
 .word-card {

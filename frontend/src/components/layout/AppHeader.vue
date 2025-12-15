@@ -1,9 +1,40 @@
+<script setup>
+import { ref, computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useAuthStore } from '@/store/auth';
+
+const router = useRouter();
+const authStore = useAuthStore();
+
+const isAuthenticated = computed(() => authStore.isAuthenticated);
+const isMobileMenuOpen = ref(false);
+
+const toggleMobileMenu = () => {
+  isMobileMenuOpen.value = !isMobileMenuOpen.value;
+};
+
+const closeMobileMenu = () => {
+  isMobileMenuOpen.value = false;
+};
+
+const handleLogout = () => {
+  authStore.logout();
+  closeMobileMenu();
+  router.push('/');
+};
+
+// Закрываем меню при смене маршрута
+router.afterEach(() => {
+  closeMobileMenu();
+});
+</script>
+
 <template>
   <header class="layout__header">
     <div class="container">
       <nav class="nav">
         <router-link to="/dashboard" class="nav__logo">WordFlow</router-link>
-        
+
         <!-- Мобильное меню (гамбургер) -->
         <button
           v-if="isAuthenticated"
@@ -99,38 +130,6 @@
     </div>
   </header>
 </template>
-
-<script setup>
-import { ref, computed } from 'vue';
-import { useRouter, useRoute } from 'vue-router';
-import { useAuthStore } from '@/store/auth';
-
-const router = useRouter();
-const route = useRoute();
-const authStore = useAuthStore();
-
-const isAuthenticated = computed(() => authStore.isAuthenticated);
-const isMobileMenuOpen = ref(false);
-
-const toggleMobileMenu = () => {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value;
-};
-
-const closeMobileMenu = () => {
-  isMobileMenuOpen.value = false;
-};
-
-const handleLogout = () => {
-  authStore.logout();
-  closeMobileMenu();
-  router.push('/');
-};
-
-// Закрываем меню при смене маршрута
-router.afterEach(() => {
-  closeMobileMenu();
-});
-</script>
 
 <style lang="scss" scoped>
 .nav {
@@ -289,4 +288,3 @@ router.afterEach(() => {
   min-height: auto;
 }
 </style>
-

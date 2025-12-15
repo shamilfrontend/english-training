@@ -1,3 +1,6 @@
+<script setup>
+</script>
+
 <template>
   <div class="landing">
     <div class="container">
@@ -32,9 +35,6 @@
     </div>
   </div>
 </template>
-
-<script setup>
-</script>
 
 <style lang="scss" scoped>
 .landing {
@@ -102,4 +102,3 @@
   }
 }
 </style>
-

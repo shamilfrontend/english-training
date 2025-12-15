@@ -77,4 +77,3 @@ export const useProgressStore = defineStore('progress', () => {
     getStats,
   };
 });
-
