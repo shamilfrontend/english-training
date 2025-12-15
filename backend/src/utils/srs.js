@@ -41,6 +41,8 @@ export function getStatusFromQuality(quality, currentStatus) {
   if (quality >= 4) {
     if (currentStatus === 'new') return 'learning';
     if (currentStatus === 'learning') return 'review';
+    // Если правильный ответ на слово со статусом review, переводим в mastered
+    if (currentStatus === 'review') return 'mastered';
     return 'mastered';
   }
   if (quality < 3) {
