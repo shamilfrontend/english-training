@@ -1,7 +1,40 @@
 <template>
   <div class="word-card fade-in">
     <div class="word-card__content">
-      <h2 class="word-card__word">{{ word.word }}</h2>
+      <div class="word-card__word-wrapper">
+        <h2 class="word-card__word">{{ word.word }}</h2>
+        <button
+          @click="playWord"
+          class="word-card__play-btn"
+          :disabled="isPlaying"
+          aria-label="Произнести слово"
+        >
+          <svg
+            v-if="!isPlaying"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M8 5V19L19 12L8 5Z"
+              fill="currentColor"
+            />
+          </svg>
+          <svg
+            v-else
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect x="6" y="4" width="4" height="16" fill="currentColor" />
+            <rect x="14" y="4" width="4" height="16" fill="currentColor" />
+          </svg>
+        </button>
+      </div>
       <p v-if="word.transcription" class="word-card__transcription">
         {{ word.transcription }}
       </p>
@@ -84,6 +117,7 @@ const props = defineProps({
 const emit = defineEmits(['answer']);
 
 const selectedIndex = ref(null);
+const isPlaying = ref(false);
 
 const safeOptions = computed(() => {
   return props.options && props.options.length > 0 
@@ -124,6 +158,60 @@ const handleContinue = () => {
   // Сбрасываем выбор после отправки ответа
   selectedIndex.value = null;
 };
+
+const playWord = () => {
+  if (isPlaying.value || !props.word?.word) return;
+
+  // Проверяем поддержку Web Speech API
+  if (!('speechSynthesis' in window)) {
+    console.warn('Speech synthesis не поддерживается в этом браузере');
+    return;
+  }
+
+  isPlaying.value = true;
+
+  // Останавливаем предыдущее воспроизведение, если есть
+  window.speechSynthesis.cancel();
+
+  const utterance = new SpeechSynthesisUtterance(props.word.word);
+  
+  // Настройки для английского произношения
+  utterance.lang = 'en-US';
+  utterance.rate = 0.9; // Скорость речи (0.1 - 10)
+  utterance.pitch = 1; // Высота голоса (0 - 2)
+  utterance.volume = 1; // Громкость (0 - 1)
+
+  // Пытаемся выбрать английский голос
+  const voices = window.speechSynthesis.getVoices();
+  const englishVoice = voices.find(
+    (voice) => voice.lang.startsWith('en') && voice.localService
+  ) || voices.find((voice) => voice.lang.startsWith('en'));
+
+  if (englishVoice) {
+    utterance.voice = englishVoice;
+  }
+
+  utterance.onend = () => {
+    isPlaying.value = false;
+  };
+
+  utterance.onerror = () => {
+    isPlaying.value = false;
+    console.error('Ошибка при воспроизведении слова');
+  };
+
+  window.speechSynthesis.speak(utterance);
+};
+
+// Загружаем голоса при монтировании компонента
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  // Некоторые браузеры загружают голоса асинхронно
+  if (window.speechSynthesis.getVoices().length === 0) {
+    window.speechSynthesis.addEventListener('voiceschanged', () => {
+      // Голоса загружены
+    });
+  }
+}
 </script>
 
 <style lang="scss" scoped>
@@ -132,11 +220,57 @@ const handleContinue = () => {
     width: 100%;
   }
 
+  &__word-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+
   &__word {
     font-size: 2.5rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    margin: 0;
+  }
+
+  &__play-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--primary-color);
+    background: var(--bg-white);
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    padding: 0;
+
+    &:hover:not(:disabled) {
+      background: var(--primary-color);
+      color: white;
+      transform: scale(1.1);
+      box-shadow: var(--shadow-md);
+    }
+
+    &:active:not(:disabled) {
+      transform: scale(0.95);
+    }
+
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    svg {
+      width: 24px;
+      height: 24px;
+    }
   }
 
   &__transcription {
