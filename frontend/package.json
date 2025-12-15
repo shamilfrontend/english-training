@@ -1,5 +1,5 @@
 {
-  "name": "english-training-frontend",
+  "name": "wordflow-frontend",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -11,11 +11,14 @@
     "vue": "^3.3.11",
     "vue-router": "^4.2.5",
     "pinia": "^2.1.7",
-    "axios": "^1.6.2"
+    "axios": "^1.6.2",
+    "vue-i18n": "^9.8.0",
+    "vue-toastification": "^2.0.0-rc.5"
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^4.5.2",
-    "vite": "^5.0.8",
-    "sass": "^1.69.5"
+    "sass": "^1.69.5",
+    "vite": "^5.0.8"
   }
 }
+
