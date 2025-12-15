@@ -1,6 +1,7 @@
 <template>
   <div class="layout">
     <AppHeader />
+
     <main class="layout__content">
       <div class="container">
         <h1 class="page-title">Добро пожаловать!</h1>
@@ -39,7 +40,7 @@
               {{ reviewCount }} слов готовы к повторению
             </p>
             <p v-else>Нет слов для повторения</p>
-            <button class="btn btn--outline btn--full" :disabled="reviewCount === 0">
+            <button class="btn btn--outline btn--full">
               Повторить
             </button>
           </router-link>

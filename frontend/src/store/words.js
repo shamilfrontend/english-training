@@ -20,6 +20,18 @@ export const useWordsStore = defineStore('words', () => {
     }
   };
 
+  const getWordsCount = async () => {
+    try {
+      const response = await api.get('/words/count');
+      return { success: true, count: response.data.count };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.response?.data?.error || 'Ошибка загрузки количества слов',
+      };
+    }
+  };
+
   const fetchWords = async (category, limit = 50) => {
     loading.value = true;
     try {
@@ -92,6 +104,7 @@ export const useWordsStore = defineStore('words', () => {
     getDailyTraining,
     getReviewWords,
     completeTraining,
+    getWordsCount,
   };
 });
 

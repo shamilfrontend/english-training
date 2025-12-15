@@ -69,3 +69,12 @@ export const getCategories = async (req, res) => {
   }
 };
 
+export const getWordsCount = async (req, res) => {
+  try {
+    const count = await Word.countDocuments({});
+    res.json({ count });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+

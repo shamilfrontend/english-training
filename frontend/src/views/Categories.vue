@@ -4,6 +4,9 @@
     <main class="layout__content">
       <div class="container">
         <h1 class="page-title">Категории</h1>
+        <p v-if="totalWordsCount !== null" class="categories__total">
+          Общее количество слов - {{ totalWordsCount }}
+        </p>
         
         <div v-if="loading" class="loading">Загрузка...</div>
         
@@ -44,6 +47,7 @@ const progressStore = useProgressStore();
 
 const categories = ref([]);
 const loading = ref(true);
+const totalWordsCount = ref(null);
 
 const loadCategories = async () => {
   loading.value = true;
@@ -58,6 +62,12 @@ const loadCategories = async () => {
     }
   } else {
     toast.error(result.error);
+  }
+  
+  // Загружаем общее количество слов
+  const countResult = await wordsStore.getWordsCount();
+  if (countResult.success) {
+    totalWordsCount.value = countResult.count;
   }
   
   loading.value = false;
@@ -107,6 +117,16 @@ onMounted(() => {
   padding: 2rem;
   color: white;
   font-size: 1.25rem;
+}
+
+.categories {
+  &__total {
+    font-size: 1.125rem;
+    color: white;
+    opacity: 0.9;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
 }
 </style>
 
