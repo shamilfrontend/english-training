@@ -86,7 +86,7 @@ onMounted(() => {
 </template>
 
 <style lang="scss" scoped>
-@import '../styles/components.scss';
+@use '../styles/components.scss';
 
 .page-title {
   font-size: 2rem;

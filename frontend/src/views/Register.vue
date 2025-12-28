@@ -92,5 +92,5 @@ const handleRegister = async () => {
 </template>
 
 <style lang="scss" scoped>
-@import '../styles/components.scss';
+@use '../styles/components.scss';
 </style>

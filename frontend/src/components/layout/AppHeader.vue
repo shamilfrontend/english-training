@@ -209,7 +209,7 @@ router.afterEach(() => {
       flex-direction: column;
       gap: 0;
       width: 100%;
-      padding: 1rem 0;
+      padding: 1rem 12px;
 
       li {
         width: 100%;
